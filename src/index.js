@@ -10,6 +10,7 @@ import { CheckboxControl } from '@wordpress/components';
 import { useEntityProp } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 import { registerPlugin } from '@wordpress/plugins';
+import icon from './icon';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -31,11 +32,12 @@ import save from './save';
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
  */
-registerBlockType( 'create-block/css-only-carousel', {
+registerBlockType( 'coderaaron/css-only-carousel', {
 	/**
 	 * @see ./edit.js
 	 */
 	edit: Edit,
+	icon,
 
 	/**
 	 * @see ./save.js
@@ -46,12 +48,12 @@ registerBlockType( 'create-block/css-only-carousel', {
 const CSSOnlyCarouselMetabox = () => {
 	// Get post type.
 	const postType = useSelect(
-		(select) => select('core/editor').getCurrentPostType(),
+		( select ) => select( 'core/editor' ).getCurrentPostType(),
 		[]
 	);
 
 	// Get the value of meta and a function for updating meta from useEntityProp.
-	const [meta, setMeta] = useEntityProp('postType', postType, 'meta');
+	const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' );
 
 	// Define which post meta key to read from/save to.
 	const metaKey = 'use_in_carousel';
@@ -62,7 +64,7 @@ const CSSOnlyCarouselMetabox = () => {
 	 * @param {string} key - The meta key to read.
 	 * @return {*} - Meta value.
 	 */
-	const getPostMeta = (key) => meta[key] || '';
+	const getPostMeta = ( key ) => meta[ key ] || '';
 
 	/**
 	 * A helper function for updating post meta that accepts a meta key and meta
@@ -73,22 +75,25 @@ const CSSOnlyCarouselMetabox = () => {
 	 * @param {string} key   - The meta key to update.
 	 * @param {*}      value - The meta value to update.
 	 */
-	const setPostMeta = (key, value) =>
-		setMeta({
+	const setPostMeta = ( key, value ) =>
+		setMeta( {
 			...meta,
-			[key]: value,
-		});
+			[ key ]: value,
+		} );
 
 	return (
 		<PluginPostStatusInfo className="css-only-carousel-checkbox">
 			<CheckboxControl
-				label={__('Use Featured Image in Carousel', 'css-only-carousel')}
-				checked={getPostMeta(metaKey)}
-				onChange={(value) => setPostMeta(metaKey, value)}
+				label={ __(
+					'Use Featured Image in Carousel',
+					'css-only-carousel'
+				) }
+				checked={ getPostMeta( metaKey ) }
+				onChange={ ( value ) => setPostMeta( metaKey, value ) }
 			/>
 		</PluginPostStatusInfo>
 	);
 };
-registerPlugin('css-only-carousel-metabox', {
+registerPlugin( 'css-only-carousel-metabox', {
 	render: CSSOnlyCarouselMetabox,
-});
+} );

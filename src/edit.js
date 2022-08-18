@@ -1,9 +1,4 @@
-/**
- * Retrieves the translation of text.
- *
- * @see https://developer.wordpress.org/block-editor/packages/packages-i18n/
- */
-import { __ } from '@wordpress/i18n';
+import ServerSideRender from '@wordpress/server-side-render';
 
 /**
  * React hook that is used to mark the block wrapper element.
@@ -25,17 +20,19 @@ import './editor.scss';
  * The edit function describes the structure of your block in the context of the
  * editor. This represents what the editor will render when the block is used.
  *
+ * @param  props
  * @see https://developer.wordpress.org/block-editor/developers/block-api/block-edit-save/#edit
  *
  * @return {WPElement} Element to render.
  */
-export default function Edit() {
+export default function Edit( props ) {
+	const blockProps = useBlockProps();
 	return (
-		<p { ...useBlockProps() }>
-			{ __(
-				'Css Only Carousel – hello from the editor!',
-				'css-only-carousel'
-			) }
-		</p>
+		<div { ...blockProps }>
+			<ServerSideRender
+				block="coderaaron/css-only-carousel"
+				attributes={ props.attributes }
+			/>
+		</div>
 	);
 }

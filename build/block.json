@@ -1,12 +1,12 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 2,
-  "name": "create-block/css-only-carousel",
-  "version": "0.1.0",
-  "title": "Css Only Carousel",
-  "category": "widgets",
-  "icon": "smiley",
-  "description": "Example block written with ESNext standard and JSX support – build step required.",
+  "name": "coderaaron/css-only-carousel",
+  "version": "1.0.0",
+  "title": "CSS Only Carousel",
+  "category": "media",
+  "icon": "gallery",
+  "description": "A CSS Only Carousel inspired by https://css-tricks.com/css-only-carousel/",
   "supports": {
     "html": false
   },

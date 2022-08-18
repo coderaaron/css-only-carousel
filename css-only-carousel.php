@@ -10,7 +10,7 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       css-only-carousel
  *
- * @package           create-block
+ * @package           coderaaron
  */
 
 /**
@@ -80,19 +80,18 @@ function css_only_carousel_block_render( $attributes ) {
 			if ( $next > $total ) {
 				$next = 1;
 			}
-			$slides     .= "<li id='carousel__slide$i'
-				tabindex='0'
-				class='carousel__slide'>
-			<div class='carousel__snapper'>
-				<a href='#carousel__slide$prev'
-				class='carousel__prev'>Go to last slide</a>
-				<a href='#carousel__slide$next'
-				class='carousel__next'>Go to next slide</a>
+			$href        = get_the_permalink();
+			$alt         = the_title_attribute( array( 'echo' => false ) );
+			$slides     .= "<li id='carousel-slide$i' tabindex='0' class='carousel-slide'>
+			<div class='carousel-snapper'>
+			<a href='$href' alt='$alt'>" . get_the_post_thumbnail( null, 'large' ) . "</a>
 			</div>
+			<a href='#carousel-slide$prev'	class='carousel-prev'>Go to last slide</a>
+			<a href='#carousel-slide$next'	class='carousel-next'>Go to next slide</a>
 			</li>";
-			$navigation .= "<li class='carousel__navigation-item'>
-        		<a href='#carousel__slide$i'
-					class='carousel__navigation-button'>Go to slide $i</a>
+			$navigation .= "<li class='carousel-navigation-item'>
+        		<a href='#carousel-slide$i'
+					class='carousel-navigation-button'>Go to slide $i</a>
 				</li>";
 			$i++;
 		}
@@ -102,12 +101,12 @@ function css_only_carousel_block_render( $attributes ) {
 	wp_reset_postdata();
 
 	return sprintf(
-		'<section class="carousel" aria-label="Gallery">
-		<ol class="carousel__viewport">
+		'<section class="carousel alignfull" aria-label="Gallery">
+		<ol class="carousel-viewport">
 			%1$s
 		</ol>
-		<aside class="carousel__navigation">
-			<ol class="carousel__navigation-list">
+		<aside class="carousel-navigation">
+			<ol class="carousel-navigation-list">
 				%2$s
 			</ol>
 		</aside>
