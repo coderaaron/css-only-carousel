@@ -3,6 +3,7 @@ import {
 	FormTokenField,
 	ToggleControl,
 	PanelBody,
+	RangeControl,
 } from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
@@ -15,7 +16,7 @@ export default ( { attributes, setAttributes } ) => {
 
 	const posts = useSelect( ( select ) => {
 		return select( 'core' ).getEntityRecords( 'postType', 'post', {
-			per_page: -1,
+			per_page: 100,
 			_fields: 'id,title',
 		} );
 	}, [] );
@@ -54,6 +55,7 @@ export default ( { attributes, setAttributes } ) => {
 			selectedPosts: postTokensArray,
 		} );
 	};
+	attributes.editing = true;
 
 	return (
 		<>
@@ -76,6 +78,15 @@ export default ( { attributes, setAttributes } ) => {
 						onChange={ () =>
 							setAttributes( { linkThru: ! attributes.linkThru } )
 						}
+					/>
+					<RangeControl
+						label="Slide delay"
+						value={ attributes.delay }
+						onChange={ ( value ) =>
+							setAttributes( { delay: value } )
+						}
+						min={ 2 }
+						max={ 60 }
 					/>
 				</PanelBody>
 			</InspectorControls>

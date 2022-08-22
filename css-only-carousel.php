@@ -32,11 +32,19 @@ function css_only_carousel_block_init() {
 add_action( 'init', 'css_only_carousel_block_init' );
 
 function css_only_carousel_block_render( $attributes ) {
+	$link_thru = $attributes['linkThru'] && ! $attributes['editing'];
+	$delay     = $attributes['delay'];
+	if ( ! isset( $attributes['selectedPosts'] ) ||
+	( is_array( $attributes['selectedPosts'] ) && count( $attributes['selectedPosts'] ) === 0 ) ) {
+		return '<section class="carousel alignfull" aria-label="Gallery">No Posts Selected</section>';
+	}
+
 	// WP_Query arguments
 	$args = array(
 		'posts_per_page'      => '-1',
 		'post__in'            => $attributes['selectedPosts'],
 		'ignore_sticky_posts' => 1,
+		'orderby'             => 'post__in',
 	);
 
 	// The Query
@@ -61,21 +69,31 @@ function css_only_carousel_block_render( $attributes ) {
 			if ( $next > $total ) {
 				$next = 1;
 			}
-			$href        = get_the_permalink();
-			$alt         = the_title_attribute( array( 'echo' => false ) );
-			$slides     .= "<li id='carousel-slide$i' tabindex='0' class='carousel-slide'>
-			<div class='carousel-snapper'>
-			<a href='$href' alt='$alt'>" . get_the_post_thumbnail( null, 'large' ) . "</a>
-			</div>
+			$href                 = get_the_permalink();
+			$alt                  = the_title_attribute( array( 'echo' => false ) );
+			$slides              .= "<li id='carousel-slide$i' tabindex='0' class='carousel-slide'>
+			<div class='carousel-snapper'>";
+			$link_thru ? $slides .= "<a href='$href' alt='$alt'>" : '';
+			$slides              .= get_the_post_thumbnail( null, 'large' );
+			$link_thru ? $slides .= '</a>' : '';
+			$slides              .= "</div>
 			<a href='#carousel-slide$prev'	class='carousel-prev'>Go to last slide</a>
 			<a href='#carousel-slide$next'	class='carousel-next'>Go to next slide</a>
 			</li>";
-			$navigation .= "<li class='carousel-navigation-item'>
+			$navigation          .= "<li class='carousel-navigation-item'>
         		<a href='#carousel-slide$i'
 					class='carousel-navigation-button'>Go to slide $i</a>
 				</li>";
 			$i++;
 		}
+
+		add_action(
+			'wp_enqueue_scripts',
+			function () use ( $delay ) {
+				$custom_css = "@media (hover: hover) { .carousel-snapper { animation-duration: ${delay}s; } }";
+				wp_add_inline_style( 'coderaaron-css-only-carousel-style', $custom_css );
+			}
+		);
 	}
 
 	// Restore original Post Data

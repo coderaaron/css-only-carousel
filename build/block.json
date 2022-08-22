@@ -6,7 +6,7 @@
   "title": "CSS Only Carousel",
   "category": "media",
   "icon": "gallery",
-  "description": "A CSS Only Carousel inspired by https://css-tricks.com/css-only-carousel/",
+  "description": "A carousel that uses only CSS",
   "supports": {
     "html": false
   },
@@ -18,6 +18,14 @@
     "linkThru": {
       "type": "boolean",
       "default": true
+    },
+    "editing": {
+      "type": "boolean",
+      "default": false
+    },
+    "delay": {
+      "type": "integer",
+      "default": 6
     }
   },
   "textdomain": "css-only-carousel",
