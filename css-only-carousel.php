@@ -6,6 +6,7 @@
  * Requires PHP:      7.0
  * Version:           1.0.0
  * Author:            Aaron Graham
+ * Author URI:        https://coderaaron.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       css-only-carousel
@@ -30,35 +31,12 @@ function css_only_carousel_block_init() {
 }
 add_action( 'init', 'css_only_carousel_block_init' );
 
-/**
- * Registers all block assets so that they can be enqueued through Gutenberg in
- * the corresponding context.
- */
-function register_css_only_carousel_meta() {
-	// Register the post meta field the meta box will save to.
-	register_post_meta(
-		'post',
-		'use_in_carousel',
-		array(
-			'show_in_rest' => true,
-			'single'       => true,
-			'type'         => 'boolean',
-		)
-	);
-}
-add_action( 'init', 'register_css_only_carousel_meta' );
-
 function css_only_carousel_block_render( $attributes ) {
 	// WP_Query arguments
 	$args = array(
-		'posts_per_page' => '-1',
-		'meta_query'     => array(
-			array(
-				'key'   => 'use_in_carousel',
-				'value' => '1',
-				'type'  => 'BINARY',
-			),
-		),
+		'posts_per_page'      => '-1',
+		'post__in'            => $attributes['selectedPosts'],
+		'ignore_sticky_posts' => 1,
 	);
 
 	// The Query
@@ -72,6 +50,9 @@ function css_only_carousel_block_render( $attributes ) {
 		$total      = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
 		while ( $query->have_posts() ) {
 			$query->the_post();
+			if ( ! has_post_thumbnail() ) {
+				continue;
+			}
 			$prev = $i - 1;
 			if ( $prev < 1 ) {
 				$prev = $total;
