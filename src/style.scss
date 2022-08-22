@@ -1,3 +1,5 @@
+/* stylelint-disable function-url-quotes */
+
 /**
  * The following styles get applied both on the front of your site
  * and in the editor.
@@ -84,7 +86,7 @@
 		background-position: center center;
 		color: #fff;
 		font-size: 2.5rem;
-		line-height: 4rem;
+		line-height: 4;
 		text-align: center;
 		pointer-events: none;
 	}
@@ -144,6 +146,11 @@
 	height: 100%;
 	scroll-snap-align: center;
 	text-align: center;
+
+	img {
+		width: 100%;
+		height: auto;
+	}
 }
 
 @media (hover: hover) {

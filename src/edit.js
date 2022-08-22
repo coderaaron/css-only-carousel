@@ -1,38 +1,90 @@
 import ServerSideRender from '@wordpress/server-side-render';
+import {
+	FormTokenField,
+	ToggleControl,
+	PanelBody,
+} from '@wordpress/components';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
-/**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/packages/packages-block-editor/#useBlockProps
- */
-import { useBlockProps } from '@wordpress/block-editor';
-
-/**
- * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
- * Those files can contain any CSS code that gets applied to the editor.
- *
- * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
- */
 import './editor.scss';
 
-/**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
- *
- * @param  props
- * @see https://developer.wordpress.org/block-editor/developers/block-api/block-edit-save/#edit
- *
- * @return {WPElement} Element to render.
- */
-export default function Edit( props ) {
+import { useSelect } from '@wordpress/data';
+
+export default ( { attributes, setAttributes } ) => {
 	const blockProps = useBlockProps();
+
+	const posts = useSelect( ( select ) => {
+		return select( 'core' ).getEntityRecords( 'postType', 'post', {
+			per_page: -1,
+			_fields: 'id,title',
+		} );
+	}, [] );
+
+	const { selectedPosts } = attributes;
+
+	let postNames = [];
+	let postsFieldValue = [];
+	if ( posts !== null ) {
+		postNames = posts.map( ( post ) => post.title.raw );
+
+		postsFieldValue = selectedPosts.map( ( postId ) => {
+			const wantedPost = posts.find( ( post ) => {
+				return post.id === postId;
+			} );
+			if ( wantedPost === undefined || ! wantedPost ) {
+				return false;
+			}
+			return wantedPost.title.raw;
+		} );
+	}
+
+	const onChange = ( postTokens ) => {
+		// Build array of selected posts.
+		const postTokensArray = [];
+		postTokens.forEach( ( postName ) => {
+			const matchingPost = posts.find( ( post ) => {
+				return post.title.raw === postName;
+			} );
+			if ( matchingPost !== undefined ) {
+				postTokensArray.push( matchingPost.id );
+			}
+		} );
+
+		setAttributes( {
+			selectedPosts: postTokensArray,
+		} );
+	};
+
 	return (
-		<div { ...blockProps }>
-			<ServerSideRender
-				block="coderaaron/css-only-carousel"
-				attributes={ props.attributes }
-			/>
-		</div>
+		<>
+			<InspectorControls>
+				<PanelBody title="CSS Only Carousel Settings">
+					<FormTokenField
+						label="Choose posts to display featured image in carousel"
+						onChange={ onChange }
+						suggestions={ postNames }
+						value={ postsFieldValue }
+					/>
+					<ToggleControl
+						label="Link to posts"
+						help={
+							attributes.linkThru
+								? 'Images will link to posts.'
+								: 'Images will not link to posts.'
+						}
+						checked={ attributes.linkThru }
+						onChange={ () =>
+							setAttributes( { linkThru: ! attributes.linkThru } )
+						}
+					/>
+				</PanelBody>
+			</InspectorControls>
+			<div { ...blockProps }>
+				<ServerSideRender
+					block="coderaaron/css-only-carousel"
+					attributes={ attributes }
+				/>
+			</div>
+		</>
 	);
-}
+};
