@@ -1,6 +1,6 @@
 === CSS Only Carousel ===
 Contributors:      Aaron Graham
-Tags:              block
+Tags:              block, carousel, css-only
 Tested up to:      6.1
 Stable tag:        1.0.0
 License:           GPL-2.0-or-later

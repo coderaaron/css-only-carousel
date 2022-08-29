@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       CSS Only Carousel
- * Description:       A CSS Only Carousel inspired by https://css-tricks.com/css-only-carousel/
+ * Description:       A CSS Only Carousel inspired by https://codepen.io/jh3y/pen/WwVKLN
  * Requires at least: 5.8
  * Requires PHP:      7.0
  * Version:           1.0.0
@@ -32,8 +32,11 @@ function css_only_carousel_block_init() {
 add_action( 'init', 'css_only_carousel_block_init' );
 
 function css_only_carousel_block_render( $attributes ) {
-	$link_thru = $attributes['linkThru'] && ! $attributes['editing'];
-	$delay     = $attributes['delay'];
+	$link_thru   = $attributes['linkThru'] && ! $attributes['editing'];
+	$delay       = $attributes['delay'];
+	$show_arrows = $attributes['delay'];
+	$dot_type    = $attributes['dotType'];
+
 	if ( ! isset( $attributes['selectedPosts'] ) ||
 	( is_array( $attributes['selectedPosts'] ) && count( $attributes['selectedPosts'] ) === 0 ) ) {
 		return '<section class="carousel alignfull" aria-label="Gallery">No Posts Selected</section>';
@@ -47,50 +50,69 @@ function css_only_carousel_block_render( $attributes ) {
 		'orderby'             => 'post__in',
 	);
 
+	// WP_Query arguments
+	$args = array(
+		'posts_per_page'      => 3,
+		'ignore_sticky_posts' => 1,
+	);
+
 	// The Query
 	$query = new WP_Query( $args );
 
 	// The Loop
 	if ( $query->have_posts() ) {
+		require 'Stylus.php';
+
+		$stylus = new Stylus\Stylus();
+		$stylus->setReadDir( plugin_dir_path( __FILE__ ) );
+
+		$inputs     = '';
+		$controls   = '';
 		$slides     = '';
-		$navigation = '';
-		$i          = 1;
-		$total      = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
+		$indicators = '';
+
+		$i     = 1;
+		$total = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
+
+		$stylus->assign( 'noOfSlides', $total );
+		$stylus->assign( 'slideTransition', '.5s' );
+
 		while ( $query->have_posts() ) {
 			$query->the_post();
 			if ( ! has_post_thumbnail() ) {
-				continue;
-			}
+				continue; }
 			$prev = $i - 1;
 			if ( $prev < 1 ) {
-				$prev = $total;
-			}
+				$prev = $total; }
 			$next = $i + 1;
 			if ( $next > $total ) {
-				$next = 1;
-			}
-			$href                 = get_the_permalink();
-			$alt                  = the_title_attribute( array( 'echo' => false ) );
-			$slides              .= "<li id='carousel-slide$i' tabindex='0' class='carousel-slide'>
-			<div class='carousel-snapper'>";
-			$link_thru ? $slides .= "<a href='$href' alt='$alt'>" : '';
-			$slides              .= get_the_post_thumbnail( null, 'large' );
-			$link_thru ? $slides .= '</a>' : '';
-			$slides              .= "</div>
-			<a href='#carousel-slide$prev'	class='carousel-prev'>Go to last slide</a>
-			<a href='#carousel-slide$next'	class='carousel-next'>Go to next slide</a>
-			</li>";
-			$navigation          .= "<li class='carousel-navigation-item'>
-        		<a href='#carousel-slide$i'
-					class='carousel-navigation-button'>Go to slide $i</a>
-				</li>";
+				$next = 1; }
+			$href = get_the_permalink();
+			$alt  = the_title_attribute( array( 'echo' => false ) );
+
+			$checked = ( 1 === $i ) ? ' checked="checked"' : '';
+
+			$inputes = "<input class='carousel-activator' type='radio' name='carousel' id='slide-$i'$checked/>";
+
+			$controls .= "<div class='carousel-controls'>
+				<label class='carousel-control carousel-control-backward' for='slide-$prev'></label>
+				<label class='carousel-control carousel-control-forward' for='slide-$next'></label>
+			</div>";
+
+			$slides              .= '<li class="carousel-slide">';
+			$link_thru ? $slides .= "<a href='$href'>$alt</a>" : '';
+			$slides              .= '</li>';
+
+			$indicators .= "<label class='carousel-indicator' for='slide-$i'></label>";
+
 			$i++;
 		}
 
+		$custom_css = $stylus->fromFile( 'style.styl' )->toString();
+
 		add_action(
 			'wp_enqueue_scripts',
-			function () use ( $delay ) {
-				$custom_css = "@media (hover: hover) { .carousel-snapper { animation-duration: ${delay}s; } }";
+			function () use ( $custom_css ) {
 				wp_add_inline_style( 'coderaaron-css-only-carousel-style', $custom_css );
 			}
 		);
@@ -98,20 +120,21 @@ function css_only_carousel_block_render( $attributes ) {
 
 	// Restore original Post Data
 	wp_reset_postdata();
-
 	return sprintf(
-		'<section class="carousel alignfull" aria-label="Gallery">
-		<ol class="carousel-viewport">
+		'<div class="alignfull carousel carousel-thumb">
 			%1$s
-		</ol>
-		<aside class="carousel-navigation">
-			<ol class="carousel-navigation-list">
-				%2$s
-			</ol>
-		</aside>
-		</section>',
+			%2$s
+			<ul class="carousel-track">
+				%3$s
+			</ul>
+			<div class="carousel-indicators">
+				%4$s
+			</div>
+		</div>',
+		$inputs,
+		$controls,
 		$slides,
-		$navigation
+		$indicators,
 	);
 }
 

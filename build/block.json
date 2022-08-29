@@ -26,6 +26,14 @@
     "delay": {
       "type": "integer",
       "default": 6
+    },
+    "showArrows": {
+      "type": "boolean",
+      "default": true
+    },
+    "dotType": {
+      "type": "string",
+      "default": "dots"
     }
   },
   "textdomain": "css-only-carousel",

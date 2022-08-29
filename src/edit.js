@@ -4,6 +4,7 @@ import {
 	ToggleControl,
 	PanelBody,
 	RangeControl,
+	SelectControl,
 } from '@wordpress/components';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 
@@ -27,7 +28,6 @@ export default ( { attributes, setAttributes } ) => {
 	let postsFieldValue = [];
 	if ( posts !== null ) {
 		postNames = posts.map( ( post ) => post.title.raw );
-
 		postsFieldValue = selectedPosts.map( ( postId ) => {
 			const wantedPost = posts.find( ( post ) => {
 				return post.id === postId;
@@ -87,6 +87,20 @@ export default ( { attributes, setAttributes } ) => {
 						}
 						min={ 2 }
 						max={ 60 }
+					/>
+					<SelectControl
+						label="Navigation 'dot' type"
+						value={ attributes.dotType }
+						options={ [
+							{ label: 'Dots', value: 'dots' },
+							{ label: 'Thumbnails', value: 'thumbs' },
+							{ label: 'None', value: 'none' },
+						] }
+						onChange={ ( newType ) =>
+							setAttributes( {
+								dotType: newType,
+							} )
+						}
 					/>
 				</PanelBody>
 			</InspectorControls>
