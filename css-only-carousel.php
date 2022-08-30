@@ -50,32 +50,19 @@ function css_only_carousel_block_render( $attributes ) {
 		'orderby'             => 'post__in',
 	);
 
-	// WP_Query arguments
-	$args = array(
-		'posts_per_page'      => 3,
-		'ignore_sticky_posts' => 1,
-	);
-
 	// The Query
 	$query = new WP_Query( $args );
 
 	// The Loop
 	if ( $query->have_posts() ) {
-		require 'Stylus.php';
-
-		$stylus = new Stylus\Stylus();
-		$stylus->setReadDir( plugin_dir_path( __FILE__ ) );
-
 		$inputs     = '';
 		$controls   = '';
 		$slides     = '';
 		$indicators = '';
+		$custom_css = '';
 
 		$i     = 1;
 		$total = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
-
-		$stylus->assign( 'noOfSlides', $total );
-		$stylus->assign( 'slideTransition', '.5s' );
 
 		while ( $query->have_posts() ) {
 			$query->the_post();
@@ -89,10 +76,11 @@ function css_only_carousel_block_render( $attributes ) {
 				$next = 1; }
 			$href = get_the_permalink();
 			$alt  = the_title_attribute( array( 'echo' => false ) );
+			$img  = get_the_post_thumbnail_url( get_the_ID(), 'large' );
 
 			$checked = ( 1 === $i ) ? ' checked="checked"' : '';
 
-			$inputes = "<input class='carousel-activator' type='radio' name='carousel' id='slide-$i'$checked/>";
+			$inputs .= "<input class='carousel-activator' type='radio' name='carousel' id='slide-$i'$checked/>";
 
 			$controls .= "<div class='carousel-controls'>
 				<label class='carousel-control carousel-control-backward' for='slide-$prev'></label>
@@ -105,10 +93,35 @@ function css_only_carousel_block_render( $attributes ) {
 
 			$indicators .= "<label class='carousel-indicator' for='slide-$i'></label>";
 
+			$custom_css .= ".carousel-slide:nth-of-type($i),
+			.carousel-thumb .carousel-indicators .carousel-indicator:nth-of-type($i) {
+				background-image: url($img);
+			}
+
+			.carousel-track .carousel-slide:nth-of-type($i) {
+				transform: translateX(" . ( $i - 1 ) * 100 . "%);
+			}
+
+			.carousel-activator:nth-of-type($i):checked ~ .carousel-track {
+				transform: translateX(" . ( $i - 1 ) * -100 . "%);
+			}
+			.carousel-activator:nth-of-type($i):checked ~ .carousel-controls:nth-of-type($i) {
+				display: block;
+				opacity: 1;
+			}
+			.carousel-activator:nth-of-type($i):checked ~ .carousel-indicators .carousel-indicator:nth-of-type($i) {
+				opacity: 1;
+			}";
+
 			$i++;
 		}
 
-		$custom_css = $stylus->fromFile( 'style.styl' )->toString();
+		add_action(
+			'enqueue_block_editor_assets',
+			function () use ( $custom_css ) {
+				wp_add_inline_style( 'coderaaron-css-only-carousel-style', $custom_css );
+			}
+		);
 
 		add_action(
 			'wp_enqueue_scripts',
@@ -120,21 +133,33 @@ function css_only_carousel_block_render( $attributes ) {
 
 	// Restore original Post Data
 	wp_reset_postdata();
+
+	$dots_html = '';
+	switch ( $dot_type ) {
+		case 'dots':
+			break;
+		case 'thumbs':
+			$dots_html = 'carousel-thumb';
+			break;
+		default:
+			$dots_html = 'carousel-none';
+	}
+
 	return sprintf(
-		'<div class="alignfull carousel carousel-thumb">
-			%1$s
+		'<div class="alignfull carousel %1$s">
 			%2$s
+			%3$s
 			<ul class="carousel-track">
-				%3$s
+				%4$s
 			</ul>
 			<div class="carousel-indicators">
-				%4$s
+				%5$s
 			</div>
 		</div>',
+		$dots_html,
 		$inputs,
 		$controls,
 		$slides,
 		$indicators,
 	);
 }
-
