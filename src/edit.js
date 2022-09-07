@@ -1,4 +1,5 @@
 import ServerSideRender from '@wordpress/server-side-render';
+import { useEffect } from '@wordpress/element';
 import {
 	FormTokenField,
 	ToggleControl,
@@ -12,7 +13,7 @@ import './editor.scss';
 
 import { useSelect } from '@wordpress/data';
 
-export default ( { attributes, setAttributes } ) => {
+export default ( { clientId, attributes, setAttributes } ) => {
 	const blockProps = useBlockProps();
 
 	const posts = useSelect( ( select ) => {
@@ -22,7 +23,14 @@ export default ( { attributes, setAttributes } ) => {
 		} );
 	}, [] );
 
-	const { selectedPosts } = attributes;
+	const { selectedPosts, id } = attributes;
+	useEffect( () => {
+		if ( 0 === id.length ) {
+			setAttributes( {
+				id: clientId,
+			} );
+		}
+	}, [] );
 
 	let postNames = [];
 	let postsFieldValue = [];
@@ -79,15 +87,61 @@ export default ( { attributes, setAttributes } ) => {
 							setAttributes( { linkThru: ! attributes.linkThru } )
 						}
 					/>
-					<RangeControl
-						label="Slide delay"
-						value={ attributes.delay }
-						onChange={ ( value ) =>
-							setAttributes( { delay: value } )
+					<SelectControl
+						label="Transition type"
+						value={ attributes.transition }
+						options={ [
+							{ label: 'Slide', value: 'slide' },
+							{ label: 'Fade', value: 'fade' },
+						] }
+						onChange={ ( newTranisition ) =>
+							setAttributes( {
+								transition: newTranisition,
+							} )
 						}
-						min={ 2 }
-						max={ 60 }
 					/>
+					<ToggleControl
+						label="Show navigation arrows"
+						help={
+							attributes.showArrows
+								? 'Arrows will show.'
+								: 'Arrows will not show.'
+						}
+						checked={ attributes.showArrows }
+						onChange={ () =>
+							setAttributes( {
+								showArrows: ! attributes.showArrows,
+							} )
+						}
+					/>
+					<ToggleControl
+						label="Auto play"
+						help={
+							attributes.autoPlay
+								? 'Automatically advance to the next slide after a delay.'
+								: 'Manually advance through the slides.'
+						}
+						checked={ attributes.autoPlay }
+						onChange={ () =>
+							setAttributes( {
+								autoPlay: ! attributes.autoPlay,
+							} )
+						}
+					/>
+					{ attributes.autoPlay ? (
+						<RangeControl
+							label="Slide delay"
+							help="In seconds"
+							value={ attributes.delay }
+							onChange={ ( value ) =>
+								setAttributes( { delay: value } )
+							}
+							min={ 2 }
+							max={ 60 }
+						/>
+					) : (
+						''
+					) }
 					<SelectControl
 						label="Navigation 'dot' type"
 						value={ attributes.dotType }
@@ -104,6 +158,7 @@ export default ( { attributes, setAttributes } ) => {
 					/>
 				</PanelBody>
 			</InspectorControls>
+
 			<div { ...blockProps }>
 				<ServerSideRender
 					block="coderaaron/css-only-carousel"

@@ -31,11 +31,14 @@ function css_only_carousel_block_init() {
 }
 add_action( 'init', 'css_only_carousel_block_init' );
 
-function css_only_carousel_block_render( $attributes ) {
+function css_only_carousel_block_render( $attributes, $content, $block_instance ) {
 	$link_thru   = $attributes['linkThru'] && ! $attributes['editing'];
+	$auto_play   = $attributes['autoPlay'];
 	$delay       = $attributes['delay'];
-	$show_arrows = $attributes['delay'];
+	$show_arrows = $attributes['showArrows'];
 	$dot_type    = $attributes['dotType'];
+	$transition  = $attributes['transition'];
+	$block_id    = $attributes['id'];
 
 	if ( ! isset( $attributes['selectedPosts'] ) ||
 	( is_array( $attributes['selectedPosts'] ) && count( $attributes['selectedPosts'] ) === 0 ) ) {
@@ -60,6 +63,7 @@ function css_only_carousel_block_render( $attributes ) {
 		$slides     = '';
 		$indicators = '';
 		$custom_css = '';
+		$inline_js  = '';
 
 		$i     = 1;
 		$total = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
@@ -80,40 +84,52 @@ function css_only_carousel_block_render( $attributes ) {
 
 			$checked = ( 1 === $i ) ? ' checked="checked"' : '';
 
-			$inputs .= "<input class='carousel-activator' type='radio' name='carousel' id='slide-$i'$checked/>";
+			$inputs .= "<input class='carousel-activator' type='radio' name='carousel-$block_id' value='$i' id='slide-$i-$block_id'$checked/>";
 
-			$controls .= "<div class='carousel-controls'>
-				<label class='carousel-control carousel-control-backward' for='slide-$prev'></label>
-				<label class='carousel-control carousel-control-forward' for='slide-$next'></label>
-			</div>";
+			$show_arrows ? $controls .= "<div class='carousel-controls'>
+				<label class='carousel-control carousel-control-backward' for='slide-$prev-$block_id'>&laquo;</label>
+				<label class='carousel-control carousel-control-forward' for='slide-$next-$block_id'>&raquo;</label>
+			</div>" : '';
 
 			$slides              .= '<li class="carousel-slide">';
 			$link_thru ? $slides .= "<a href='$href'>$alt</a>" : '';
 			$slides              .= '</li>';
 
-			$indicators .= "<label class='carousel-indicator' for='slide-$i'></label>";
+			$indicators .= "<label class='carousel-indicator' for='slide-$i-$block_id'></label>";
 
-			$custom_css .= ".carousel-slide:nth-of-type($i),
-			.carousel-thumb .carousel-indicators .carousel-indicator:nth-of-type($i) {
+			$custom_css .= ".carousel-$block_id .carousel-slide:nth-of-type($i),
+			.carousel-$block_id.carousel-thumb .carousel-indicators .carousel-indicator:nth-of-type($i) {
 				background-image: url($img);
 			}
 
-			.carousel-track .carousel-slide:nth-of-type($i) {
+			.carousel-$block_id .carousel-track .carousel-slide:nth-of-type($i) {
 				transform: translateX(" . ( $i - 1 ) * 100 . "%);
 			}
 
-			.carousel-activator:nth-of-type($i):checked ~ .carousel-track {
+			.carousel-$block_id .carousel-activator:nth-of-type($i):checked ~ .carousel-track {
 				transform: translateX(" . ( $i - 1 ) * -100 . "%);
 			}
-			.carousel-activator:nth-of-type($i):checked ~ .carousel-controls:nth-of-type($i) {
+			.carousel-$block_id .carousel-activator:nth-of-type($i):checked ~ .carousel-slide:nth-of-type($i) {
+				transition: opacity 0.5s, transform 0.5s;
+				top: 0;
+				left: 0;
+				right: 0;
+				opacity: 1;
+				transform: scale(1);
+			}
+			.carousel-$block_id .carousel-activator:nth-of-type($i):checked ~ .carousel-controls:nth-of-type($i) {
 				display: block;
 				opacity: 1;
 			}
-			.carousel-activator:nth-of-type($i):checked ~ .carousel-indicators .carousel-indicator:nth-of-type($i) {
+			.carousel-$block_id .carousel-activator:nth-of-type($i):checked ~ .carousel-indicators .carousel-indicator:nth-of-type($i) {
 				opacity: 1;
 			}";
 
 			$i++;
+		}
+
+		if ( true === $auto_play ) {
+			$inline_js = 'window.onload=()=>{const n=document.getElementsByName("carousel-' . $block_id . '").length;setInterval(()=>{let c=parseInt(document.querySelector("input[name=carousel-' . $block_id . ']:checked").value);c=c!==n?c+1:1;document.getElementById("slide-"+c+"-' . $block_id . '").checked=true;},' . $delay * 1000 . ');};';
 		}
 
 		add_action(
@@ -125,10 +141,12 @@ function css_only_carousel_block_render( $attributes ) {
 
 		add_action(
 			'wp_enqueue_scripts',
-			function () use ( $custom_css ) {
+			function () use ( $custom_css, $inline_js ) {
+				wp_add_inline_script( 'coderaaron-css-only-carousel-script', $inline_js );
 				wp_add_inline_style( 'coderaaron-css-only-carousel-style', $custom_css );
 			}
 		);
+
 	}
 
 	// Restore original Post Data
@@ -139,27 +157,48 @@ function css_only_carousel_block_render( $attributes ) {
 		case 'dots':
 			break;
 		case 'thumbs':
-			$dots_html = 'carousel-thumb';
+			$dots_html = ' carousel-thumb';
 			break;
 		default:
-			$dots_html = 'carousel-none';
+			$dots_html = ' carousel-none';
+	}
+
+	$wrapper_attributes = get_block_wrapper_attributes(
+		array(
+			'class' => "carousel carousel-$block_id$dots_html",
+		)
+	);
+
+	$transition_open  = '';
+	$transition_close = '';
+	switch ( $transition ) {
+		case 'fade':
+			break;
+		case 'slide':
+			$transition_open  = '<ul class="carousel-track">';
+			$transition_close = '</ul>';
+			break;
+		default:
+			break;
 	}
 
 	return sprintf(
-		'<div class="alignfull carousel %1$s">
+		'<div %1$s">
 			%2$s
 			%3$s
-			<ul class="carousel-track">
-				%4$s
-			</ul>
-			<div class="carousel-indicators">
+			%4$s
 				%5$s
+			%6$s
+			<div class="carousel-indicators">
+				%7$s
 			</div>
 		</div>',
-		$dots_html,
+		$wrapper_attributes,
 		$inputs,
 		$controls,
+		$transition_open,
 		$slides,
+		$transition_close,
 		$indicators,
 	);
 }

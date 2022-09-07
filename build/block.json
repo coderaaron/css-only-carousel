@@ -6,11 +6,19 @@
   "title": "CSS Only Carousel",
   "category": "media",
   "icon": "gallery",
-  "description": "A carousel that uses only CSS",
+  "description": "A carousel that uses only CSS (and a tiny bit of JS for autoplay)",
   "supports": {
-    "html": false
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ]
   },
   "attributes": {
+    "id": {
+      "type": "string",
+      "default": ""
+    },
     "selectedPosts": {
       "type": "array",
       "default": []
@@ -23,9 +31,17 @@
       "type": "boolean",
       "default": false
     },
+    "autoPlay": {
+      "type": "boolean",
+      "default": false
+    },
     "delay": {
       "type": "integer",
       "default": 6
+    },
+    "transition": {
+      "type": "string",
+      "default": "slide"
     },
     "showArrows": {
       "type": "boolean",
@@ -39,5 +55,6 @@
   "textdomain": "css-only-carousel",
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
-  "style": "file:./style-index.css"
+  "style": "file:./style-index.css",
+  "script": "file:./frontend.js"
 }
