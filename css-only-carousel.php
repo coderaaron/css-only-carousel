@@ -4,7 +4,7 @@
  * Description:       A CSS Only Carousel inspired by https://codepen.io/jh3y/pen/WwVKLN
  * Requires at least: 5.8
  * Requires PHP:      7.0
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Aaron Graham
  * Author URI:        https://coderaaron.com
  * License:           GPL-2.0-or-later
