@@ -18,6 +18,9 @@ as possible?
 == Changelog ==
 
 = 1.0.1 =
+* Move the images from CSS to HTML so the preview in the Editor will update
+
+= 1.0.1 =
 * Remove unused Editor Plugin
 
 = 1.0.0 =

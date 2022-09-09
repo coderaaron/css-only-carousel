@@ -4,7 +4,7 @@
  * Description:       A CSS Only Carousel inspired by https://codepen.io/jh3y/pen/WwVKLN
  * Requires at least: 5.8
  * Requires PHP:      7.0
- * Version:           1.0.1
+ * Version:           1.1.0
  * Author:            Aaron Graham
  * Author URI:        https://coderaaron.com
  * License:           GPL-2.0-or-later
@@ -68,6 +68,12 @@ function css_only_carousel_block_render( $attributes, $content, $block_instance 
 		$i     = 1;
 		$total = $query->post_count; // see: https://wordpress.stackexchange.com/a/27117
 
+		// If we only have one image, no need to display navigation related things
+		if ( $total < 2 ) {
+			$show_arrows = false;
+			$dot_type    = 'none';
+		}
+
 		while ( $query->have_posts() ) {
 			$query->the_post();
 			if ( ! has_post_thumbnail() ) {
@@ -80,7 +86,7 @@ function css_only_carousel_block_render( $attributes, $content, $block_instance 
 				$next = 1; }
 			$href = get_the_permalink();
 			$alt  = the_title_attribute( array( 'echo' => false ) );
-			$img  = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+			$img  = get_the_post_thumbnail( get_the_ID(), 'large' );
 
 			$checked = ( 1 === $i ) ? ' checked="checked"' : '';
 
@@ -92,17 +98,15 @@ function css_only_carousel_block_render( $attributes, $content, $block_instance 
 			</div>" : '';
 
 			$slides              .= '<li class="carousel-slide">';
-			$link_thru ? $slides .= "<a href='$href'>$alt</a>" : '';
+			$link_thru ? $slides .= "<a href='$href'>" : '';
+			$slides              .= $img;
+			$link_thru ? $slides .= '</a>' : '';
 			$slides              .= '</li>';
 
-			$indicators .= "<label class='carousel-indicator' for='slide-$i-$block_id'></label>";
+			$thumbnail   = ( 'thumbs' === $dot_type ) ? $img : '';
+			$indicators .= "<label class='carousel-indicator' for='slide-$i-$block_id'>$thumbnail</label>";
 
-			$custom_css .= ".carousel-$block_id .carousel-slide:nth-of-type($i),
-			.carousel-$block_id.carousel-thumb .carousel-indicators .carousel-indicator:nth-of-type($i) {
-				background-image: url($img);
-			}
-
-			.carousel-$block_id .carousel-track .carousel-slide:nth-of-type($i) {
+			$custom_css .= ".carousel-$block_id .carousel-track .carousel-slide:nth-of-type($i) {
 				transform: translateX(" . ( $i - 1 ) * 100 . "%);
 			}
 
