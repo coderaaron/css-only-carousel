@@ -86,7 +86,7 @@ function css_only_carousel_block_render( $attributes, $content, $block_instance 
 				$next = 1; }
 			$href = get_the_permalink();
 			$alt  = the_title_attribute( array( 'echo' => false ) );
-			$img  = get_the_post_thumbnail( get_the_ID(), 'large' );
+			$img  = get_the_post_thumbnail( get_the_ID(), 'full' );
 
 			$checked = ( 1 === $i ) ? ' checked="checked"' : '';
 
