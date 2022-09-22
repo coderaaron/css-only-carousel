@@ -133,7 +133,8 @@ function css_only_carousel_block_render( $attributes, $content, $block_instance 
 		}
 
 		if ( true === $auto_play ) {
-			$inline_js = 'window.onload=()=>{const n=document.getElementsByName("carousel-' . $block_id . '").length;setInterval(()=>{let c=parseInt(document.querySelector("input[name=carousel-' . $block_id . ']:checked").value);c=c!==n?c+1:1;document.getElementById("slide-"+c+"-' . $block_id . '").checked=true;},' . $delay * 1000 . ');};';
+			$inline_js = 'window.addEventListener("load", (event) => {const n=document.getElementsByName("carousel-' . $block_id . '").length;setInterval(()=>{let c=parseInt(document.querySelector("input[name=carousel-' . $block_id . ']:checked").value);c=c!==n?c+1:1;document.getElementById("slide-"+c+"-' . $block_id . '").checked=true;},' . $delay * 1000 . ');});';
+			//$inline_js = 'window.onload=()=>{const n=document.getElementsByName("carousel-' . $block_id . '").length;setInterval(()=>{let c=parseInt(document.querySelector("input[name=carousel-' . $block_id . ']:checked").value);c=c!==n?c+1:1;document.getElementById("slide-"+c+"-' . $block_id . '").checked=true;},' . $delay * 1000 . ');};';
 		}
 
 		add_action(
